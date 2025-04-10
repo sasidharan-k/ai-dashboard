@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import axios from 'axios';
 
 // Load environment variables
 dotenv.config();
@@ -32,6 +33,56 @@ app.get('/api/dashboard-data', (req: Request, res: Response) => {
       { id: 3, user: 'user456', action: 'Data Export', timestamp: new Date(), details: 'Exported monthly report' }
     ]
   });
+});
+
+// Screenshot API endpoint
+app.post('/api/screenshot', async (req: Request, res: Response) => {
+  try {
+    const { url } = req.body;
+    
+    if (!url) {
+      return res.status(400).json({ error: 'URL is required' });
+    }
+    
+    // Here you would typically connect to a screenshot service
+    // For demonstration, we're returning mock data
+    res.json({
+      success: true,
+      url: url,
+      screenshotUrl: `https://screenshot.example/image/${Buffer.from(url).toString('base64')}`,
+      timestamp: new Date()
+    });
+  } catch (error) {
+    console.error('Screenshot error:', error);
+    res.status(500).json({ error: 'Failed to generate screenshot' });
+  }
+});
+
+// Web search API endpoint
+app.post('/api/websearch', async (req: Request, res: Response) => {
+  try {
+    const { url } = req.body;
+    
+    if (!url) {
+      return res.status(400).json({ error: 'URL is required' });
+    }
+    
+    // Here you would typically connect to a web search service or crawl the URL
+    // For demonstration, we're returning mock data
+    res.json({
+      success: true,
+      url: url,
+      results: [
+        { title: 'Search Result 1', snippet: 'This is a sample search result from the provided URL' },
+        { title: 'Search Result 2', snippet: 'Another example search result with some content' },
+        { title: 'Search Result 3', snippet: 'A third mock search result from the webpage' }
+      ],
+      timestamp: new Date()
+    });
+  } catch (error) {
+    console.error('Web search error:', error);
+    res.status(500).json({ error: 'Failed to perform web search' });
+  }
 });
 
 // Start server

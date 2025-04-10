@@ -14,6 +14,16 @@ const Navbar: React.FC = () => {
               Dashboard
             </Link>
           </li>
+          <li className="nav-item">
+            <Link to="/screenshot" className="nav-link">
+              Screenshot
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/websearch" className="nav-link">
+              Web Search
+            </Link>
+          </li>
         </ul>
       </div>
     </nav>

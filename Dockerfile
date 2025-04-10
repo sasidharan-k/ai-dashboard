@@ -1,50 +1,44 @@
-FROM node:20-alpine AS build
+# syntax=docker/dockerfile:1
+
+FROM socrata/runit-nodejs-focal:20x
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 WORKDIR /app
 
-# Copy package.json files
-COPY package*.json ./
-COPY client/package*.json ./client/
-COPY server/package*.json ./server/
+COPY package.json package-lock.json ./
 
-# Install dependencies
-RUN npm run install:all
+RUN --mount=type=secret,required=true,id=npmrc,target="/root/.npmrc" \
+  npm install
 
-# Copy source code
-COPY . .
+# server
 
-# Build both client and server
-RUN npm run build
+WORKDIR /app/server
 
-# Production stage
-FROM node:20-alpine AS production
+COPY server/package.json server/package-lock.json ./
+
+COPY server/tsconfig.json ./
+
+COPY server/src ./src
+
+# client
+
+WORKDIR /app/client
+
+COPY client/package.json client/package-lock.json ./
+
+COPY client/tsconfig.json ./
+
+COPY client/src ./src
+
+COPY client/public ./public
 
 WORKDIR /app
 
-# Copy package.json files
-COPY package*.json ./
-COPY server/package*.json ./server/
+RUN --mount=type=secret,required=true,id=npmrc,target="/root/.npmrc" \
+  npm run build
 
-# Install production dependencies only
-RUN npm install --production
-RUN cd server && npm install --production
+WORKDIR /app/server
 
-# Copy built files from build stage
-COPY --from=build /app/server/dist ./server/dist
-COPY --from=build /app/client/build ./client/build
-
-# Add server static file serving for client
-COPY --from=build /app/server/src/static.ts ./server/src/
-RUN echo "import express from 'express'; import path from 'path'; export const serveStatic = (app) => { app.use(express.static(path.join(__dirname, '../../client/build'))); app.get('*', (req, res) => { res.sendFile(path.join(__dirname, '../../client/build', 'index.html')); }); };" > ./server/src/static.ts
-RUN cd server && npx tsc src/static.ts --outDir dist --esModuleInterop true --skipLibCheck true
-
-# Update server entry point to serve static files
-RUN sed -i '/import dotenv/a import { serveStatic } from '\''./static'\''\\;' ./server/dist/index.js
-RUN sed -i '/app\.listen/i serveStatic\(app\)\;' ./server/dist/index.js
-
-# Expose port
-ENV PORT=3010
 EXPOSE 3010
 
-# Start the server
-CMD ["node", "server/dist/index.js"]
+CMD ["npm", "start"]

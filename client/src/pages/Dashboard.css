@@ -80,3 +80,83 @@
   padding: 20px;
   font-size: 1.2rem;
 }
+
+/* Styles for Screenshot and WebSearch pages */
+.tool-container {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.url-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.url-input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.submit-button {
+  padding: 10px 20px;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.submit-button:hover {
+  background-color: #1565c0;
+}
+
+.submit-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.result-container {
+  margin-top: 30px;
+}
+
+.result-details {
+  margin-bottom: 20px;
+}
+
+.screenshot-preview {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid #eee;
+  margin-top: 15px;
+}
+
+.screenshot-image {
+  width: 100%;
+  object-fit: contain;
+}
+
+.search-results {
+  margin-top: 15px;
+}
+
+.search-result-item {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item h3 {
+  margin-top: 0;
+  color: #1976d2;
+}
