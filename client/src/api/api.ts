@@ -39,9 +39,9 @@ export const getScreenshot = async (url: string) => {
   }
 };
 
-export const getWebSearch = async (url: string) => {
+export const getWebSearch = async (question: string) => {
   try {
-    const response = await api.post('/websearch', { url });
+    const response = await api.post('/websearch', { question });
     return response.data;
   } catch (error) {
     console.error('Error performing web search:', error);
