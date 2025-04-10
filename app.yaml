@@ -1,0 +1,31 @@
+runtime: custom
+env: flex
+
+# Configuration for the App Engine flexible environment
+service: default
+
+# Resources
+resources:
+  cpu: 1
+  memory_gb: 1
+  disk_size_gb: 10
+
+# Automatic scaling
+automatic_scaling:
+  min_num_instances: 1
+  max_num_instances: 5
+  cool_down_period_sec: 120
+  cpu_utilization:
+    target_utilization: 0.7
+
+# Health check
+health_check:
+  enable_health_check: True
+  check_interval_sec: 30
+  timeout_sec: 4
+  unhealthy_threshold: 2
+  healthy_threshold: 2
+
+# Environment variables
+env_variables:
+  NODE_ENV: "production"
