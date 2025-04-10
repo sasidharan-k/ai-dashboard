@@ -15,6 +15,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
+const axios_1 = __importDefault(require("axios"));
+const puppeteer_1 = __importDefault(require("puppeteer"));
+const openai_1 = __importDefault(require("openai"));
+const path_1 = __importDefault(require("path"));
+const form_data_1 = __importDefault(require("form-data"));
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+console.log('OpenAI API Key:', OPENAI_API_KEY);
 // Load environment variables
 dotenv_1.default.config();
 const app = (0, express_1.default)();
@@ -22,6 +29,9 @@ const PORT = process.env.PORT || 3010;
 // Middleware
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
+const openai = new openai_1.default({
+    apiKey: process.env.OPENAI_API_KEY,
+});
 // Routes
 app.get('/api/status', (req, res) => {
     res.json({ status: 'Server is running', timestamp: new Date() });
@@ -46,17 +56,95 @@ app.get('/api/dashboard-data', (req, res) => {
 app.post('/api/screenshot', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { url } = req.body;
+        const query = 'samsung mobile search';
         if (!url) {
             return res.status(400).json({ error: 'URL is required' });
         }
         // Here you would typically connect to a screenshot service
         // For demonstration, we're returning mock data
-        res.json({
-            success: true,
-            url: url,
-            screenshotUrl: `https://screenshot.example/image/${Buffer.from(url).toString('base64')}`,
-            timestamp: new Date()
+        const browser = yield puppeteer_1.default.launch({
+            headless: true,
+            args: ["--no-sandbox", "--disable-setuid-sandbox"],
         });
+        const page = yield browser.newPage();
+        yield page.setViewport({ width: 1280, height: 800 });
+        yield page.goto("https://www.flipkart.com", { waitUntil: "networkidle2" });
+        // try {
+        //   await page.waitForSelector("button._2KpZ6l._2doB4z", { timeout: 5000 });
+        //   await page.click("button._2KpZ6l._2doB4z");
+        // } catch (popupErr: any) {
+        //   console.log("Popup not found or already closed:", popupErr.message);
+        // }
+        yield page.type('input[name="q"]', query);
+        yield page.keyboard.press("Enter");
+        yield page.waitForNavigation({ waitUntil: "networkidle2" });
+        console.log("Waiting for results to load...");
+        yield new Promise((resolve) => setTimeout(resolve, 3000));
+        yield page.evaluate(() => window.scrollBy(0, 2000));
+        yield new Promise((resolve) => setTimeout(resolve, 2000));
+        const screenshotPath = path_1.default.join(__dirname, "screenshot.png");
+        // await page.screenshot({ path: screenshotPath, fullPage: true });
+        const image = yield page.screenshot({ encoding: 'base64' });
+        yield browser.close();
+        // console.log('Screenshot taken:', image);
+        // const base64data = reader.result.split(',')[1]; // Extract base64 data from the result
+        const base64ImageUrl = `data:image/jpeg;base64,${image}`;
+        // const base64Data = image.split(',')[1];
+        const buffer = Buffer.from(base64ImageUrl, 'base64');
+        const formData = new form_data_1.default();
+        formData.append('file', buffer, { filename: 'screenshot.jpg', contentType: 'image/jpeg' });
+        // const buffer = Buffer.from(image, 'base64');
+        // const imageInstance = await loadImage(buffer);
+        // const canvas = createCanvas(imageInstance.width, imageInstance.height);
+        // const ctx = canvas.getContext('2d');
+        // ctx.drawImage(imageInstance, 0, 0);
+        // const pngBuffer = canvas.toBuffer('image/png');
+        // const response = await openai.chat.completions.create({
+        //   model: 'gpt-4',
+        //   messages: [
+        //     {
+        //       role: 'user',
+        //       content: [
+        //         { type: 'text', text: 'Summarize the content of this image.' },
+        //         {
+        //           type: 'image_url',
+        //           image_url: {
+        //             url: `data:image/png;base64,${pngBuffer.toString('base64')}`,
+        //           },
+        //         },
+        //       ],
+        //     },
+        //   ],
+        //   max_tokens: 300,
+        // });
+        // Send the analysis response
+        // const analysis = response.choices[0].message.content;
+        // res.json({ analysis });
+        console.log(OPENAI_API_KEY);
+        const response = yield axios_1.default.post('https://api.openai.com/v1/chat/completions', {
+            model: 'gpt-4o-mini',
+            messages: [
+                {
+                    role: 'user',
+                    content: [
+                        { type: 'text', text: 'Summarize the content of this image.' },
+                        {
+                            type: 'image_url',
+                            image_url: {
+                                url: `data:image/jpeg;base64,${base64ImageUrl}`,
+                            },
+                        },
+                    ],
+                },
+            ],
+            max_tokens: 300,
+        }, {
+            headers: {
+                'Authorization': `Bearer ${OPENAI_API_KEY}`,
+                'Content-Type': 'application/json',
+            },
+        });
+        res.json(response.data.choices[0].message.content);
     }
     catch (error) {
         console.error('Screenshot error:', error);
