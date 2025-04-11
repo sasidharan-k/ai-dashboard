@@ -1,11 +1,11 @@
 steps:
   # Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/peep-app/ai-dashboard', '.']
+    args: ['build', '-t', 'gcr.io/peep-prod/ai-dashboard', '.']
 
   # Push the container image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/peep-app/ai-dashboard']
+    args: ['push', 'gcr.io/peep-prod/ai-dashboard']
 
 images:
-- 'gcr.io/peep-app/ai-dashboard'
+- 'gcr.io/peep-prod/ai-dashboard'

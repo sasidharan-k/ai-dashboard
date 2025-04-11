@@ -12,7 +12,7 @@ fi
 
 # Deploy the application to Cloud Run
 gcloud run deploy ai-dashboard \
-    --image gcr.io/peep-ap/ai-dashboard \
+    --image gcr.io/peep-prod/ai-dashboard \
     --platform managed \
     --region us-central1 \
     --allow-unauthenticated
@@ -25,7 +25,7 @@ else
     exit 1
 fi
 # Get the URL of the deployed service
-SERVICE_URL=$(gcloud run services describe my-app --platform managed --region us-central1 --format 'value(status.url)')
+SERVICE_URL=$(gcloud run services describe peep-prod --platform managed --region us-central1 --format 'value(status.url)')
 # Check if the URL was retrieved successfully
 if [ $? -eq 0 ]; then
     echo "Service URL: $SERVICE_URL"
