@@ -1,0 +1,35 @@
+#!/bin/bash
+
+gcloud builds submit --config cloudbuild.yaml .
+
+# Check if the build was successful
+if [ $? -eq 0 ]; then
+    echo "Build was successful."
+else
+    echo "Build failed."
+    exit 1
+fi
+
+# Deploy the application to Cloud Run
+gcloud run deploy ai-dashboard \
+    --image gcr.io/peep-ap/ai-dashboard \
+    --platform managed \
+    --region us-central1 \
+    --allow-unauthenticated
+
+# Check if the deployment was successful
+if [ $? -eq 0 ]; then
+    echo "Deployment was successful."
+else
+    echo "Deployment failed."
+    exit 1
+fi
+# Get the URL of the deployed service
+SERVICE_URL=$(gcloud run services describe my-app --platform managed --region us-central1 --format 'value(status.url)')
+# Check if the URL was retrieved successfully
+if [ $? -eq 0 ]; then
+    echo "Service URL: $SERVICE_URL"
+else
+    echo "Failed to retrieve service URL."
+    exit 1
+fi

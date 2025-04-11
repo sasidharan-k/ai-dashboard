@@ -28,8 +28,9 @@ WORKDIR /app
 
 COPY package.json package-lock.json ./
 
-# Install root dependencies
 RUN npm install
+
+# server
 
 # server setup
 WORKDIR /app/server
@@ -56,7 +57,8 @@ COPY client/public ./public
 
 # Return to app root to run builds
 WORKDIR /app
-RUN npm run build
+
+RUN npm install
 
 WORKDIR /app/server
 
