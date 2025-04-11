@@ -32,7 +32,7 @@ app.use(express.json());
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/generated', express.static(path.join(__dirname, '/generated')))
+// app.use('/generated', express.static(path.join(__dirname, '/generated')))
 // Routes
 app.get('/api/status', (req: Request, res: Response) => {
   res.json({ status: 'Server is running', timestamp: new Date() });
@@ -147,7 +147,7 @@ app.post('/api/screenshot', async (req: Request, res: Response) => {
     await page.evaluate(() => window.scrollBy(0, 2000));
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    const screenshotPath = 'tmp/flipkart_screenshot.jpeg';
+    const screenshotPath = '/tmp/flipkart_screenshot.jpeg';
     // const screenshotPath = path.join(__dirname,  ,"generated/screenshot.jpeg");
     await page.screenshot({ path: screenshotPath, fullPage: true });
     console.log("Taking screenshot...", screenshotPath);

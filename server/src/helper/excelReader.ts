@@ -85,7 +85,7 @@ export async function excelReader(question: string) {
     details = details.flat()
     console.log('Answer:', response.answer);
     console.log('Details:', details);
-    const imagePath = 'tmp/web_search_screenshot.jpeg';
+    const imagePath = '/tmp/web_search_screenshot.jpeg';
     imageUrl = await saveTableAsImage(generateHTMLTable(details as any[], answer), imagePath);
   }
   return {imageUrl, ai_response: response};
