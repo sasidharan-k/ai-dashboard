@@ -190,7 +190,15 @@ app.post('/api/websearch', async (req: Request, res: Response) => {
   }
 });
 
-app.use('/images', express.static(path.join(__dirname, 'src')));
+// Serve static files from client build
+const clientBuildPath = path.join(__dirname, '../../client/build'); // or 'client/build' if using Create React App
+app.use(express.static(clientBuildPath));
+
+// Catch-all route to send index.html for client-side routing
+app.get('*', (_, res) => {
+  res.sendFile(path.join(clientBuildPath, 'index.html'));
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
