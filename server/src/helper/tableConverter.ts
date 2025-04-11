@@ -1,6 +1,7 @@
 import fs from 'fs';
 import puppeteer from 'puppeteer';
-
+import dotenv from 'dotenv';
+dotenv.config();
 // Sample JSON data (you can replace this with any JSON)
 const jsonData = [
   { Name: 'Alice', Age: 30, City: 'New York' },
@@ -51,7 +52,11 @@ export function generateHTMLTable(data: any[], title: string) {
 
 // Save image from HTML using Puppeteer
 export async function saveTableAsImage(html: string, outputPath: string) {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  });
   const page = await browser.newPage();
 
   await page.setContent(html, { waitUntil: 'networkidle0' });

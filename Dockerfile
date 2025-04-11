@@ -3,6 +3,22 @@
 FROM node:20-slim
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
+RUN apt-get update && apt-get install -y \
+  python3 \
+  python-is-python3 \
+  make \
+  g++ \
+  build-essential \
+  libcairo2-dev \
+  libpango1.0-dev \
+  libjpeg-dev \
+  libgif-dev \
+  librsvg2-dev \
+  fonts-liberation \
+  libfontconfig1 \
+  chromium \
+  && rm -rf /var/lib/apt/lists/*
+
 # Add Puppeteer env vars
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
