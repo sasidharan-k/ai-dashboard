@@ -11,9 +11,18 @@ A full-stack TypeScript application with a React frontend and Express backend fo
 ```bash
 npm run install:all
 ```
+#### Server Configurations
+```
+
+PORT = 3010 (required - default port)
+OPENAI_API_KEY =  (required - the API key for your Open AI instance)
+OCR_API_KEY
+OPENAI_API_VERSION = (required - the API version of your Azure Open AI instance)
 
 ### Running locally
 ```bash
+npm run build
+
 npm start
 ```
 

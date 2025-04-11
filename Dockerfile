@@ -3,23 +3,6 @@
 FROM node:20-slim
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
-# Install dependencies required for canvas and puppeteer
-RUN apt-get update && apt-get install -y \
-    python3 \
-    python-is-python3 \
-    make \
-    g++ \
-    build-essential \
-    libcairo2-dev \
-    libpango1.0-dev \
-    libjpeg-dev \
-    libgif-dev \
-    librsvg2-dev \
-    fonts-liberation \
-    libfontconfig1 \
-    chromium \
-    && rm -rf /var/lib/apt/lists/*
-
 # Add Puppeteer env vars
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
@@ -43,6 +26,8 @@ RUN npm install
 COPY server/tsconfig.json ./
 COPY server/src ./src
 
+RUN npm run build
+
 # client setup
 WORKDIR /app/client
 
@@ -60,8 +45,9 @@ WORKDIR /app
 
 RUN npm install
 
-WORKDIR /app/server
+# Final workdir should be the root
+WORKDIR /app
 
-EXPOSE 3010
+EXPOSE 3000 3010
 
 CMD ["npm", "start"]
