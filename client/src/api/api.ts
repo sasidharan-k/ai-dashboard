@@ -48,3 +48,13 @@ export const getWebSearch = async (question: string) => {
     throw error;
   }
 };
+
+export const getGoogleAnalytics = async (startDate: string, endDate: string) => {
+  try {
+    const response = await api.post('/google-analytics', { startDate, endDate });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching Google Analytics data:', error);
+    throw error;
+  }
+};

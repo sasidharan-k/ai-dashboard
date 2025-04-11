@@ -9,7 +9,7 @@ interface SearchResult {
 
 interface WebSearchResult {
   success: boolean;
-  imagePath: string;
+  imageUrl: string;
 }
 
 const WebSearch: React.FC = () => {
@@ -80,7 +80,7 @@ const WebSearch: React.FC = () => {
               ))}
             </div> */}
             <div className="screenshot-preview">
-              <img src="/generated/output.jpeg" alt="Generated" />
+              <img src={result.imageUrl} alt="Generated" />
             </div>
           </div>
         )}

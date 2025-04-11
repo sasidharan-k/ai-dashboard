@@ -9,8 +9,9 @@ import FormData  from 'form-data';
 import fs from 'fs';
 import {excelReader} from './helper/excelReader';
 import * as Tesseract from 'tesseract.js';
+import { getAnalyticsData, summarizeAnalyticsData } from './google_analytic';
+import {  uploadScreenshotToGCS } from './helper/img_cloud_uploader';
 
-import { createCanvas, loadImage } from 'canvas';
 dotenv.config();
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -31,7 +32,7 @@ app.use(express.json());
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/generated', express.static(path.join(__dirname, '../generated')))
+app.use('/generated', express.static(path.join(__dirname, '/generated')))
 // Routes
 app.get('/api/status', (req: Request, res: Response) => {
   res.json({ status: 'Server is running', timestamp: new Date() });
@@ -146,10 +147,12 @@ app.post('/api/screenshot', async (req: Request, res: Response) => {
     await page.evaluate(() => window.scrollBy(0, 2000));
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    const screenshotPath = path.join(__dirname, '../', "generated/screenshot.jpeg");
+    const screenshotPath = '/tmp/flipkart_screenshot.jpeg';
+    // const screenshotPath = path.join(__dirname,  ,"generated/screenshot.jpeg");
     await page.screenshot({ path: screenshotPath, fullPage: true });
     console.log("Taking screenshot...", screenshotPath);
-
+    const imageUrl = await uploadScreenshotToGCS(screenshotPath, 'flipkart_screenshot.jpeg');
+    console.log("Image URL:", imageUrl);
     const extractedText = await extractTextFromImage(screenshotPath);
     console.log("Extracted text:", extractedText);
 
@@ -163,7 +166,8 @@ app.post('/api/screenshot', async (req: Request, res: Response) => {
       searchedURL: `${url}?q=${encodeURIComponent(query)}`,
       screenshot: "screenshot.png",
       extractedText,
-      summary
+      summary,
+      imageUrl
     };
 
     res.json(result);
@@ -189,6 +193,29 @@ app.post('/api/websearch', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Web search error:', error);
     res.status(500).json({ error: 'Failed to perform web search' });
+  }
+});
+
+// Google Analytics API endpoint
+app.post('/api/google-analytics', async (req: Request, res: Response) => {
+  try {
+    const { startDate, endDate } = req.body;
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({ error: 'Both startDate and endDate are required' });
+    }
+
+    const analyticsData = await getAnalyticsData(startDate, endDate);
+    const summary = await summarizeAnalyticsData(analyticsData);
+
+    res.json({
+      analyticsData,
+      summary,
+      timeframe: { startDate, endDate }
+    });
+  } catch (error) {
+    console.error('Google Analytics error:', error);
+    res.status(500).json({ error: 'Failed to fetch Google Analytics data' });
   }
 });
 

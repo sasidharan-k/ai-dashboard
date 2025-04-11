@@ -1,6 +1,7 @@
 import fs from 'fs';
 import puppeteer from 'puppeteer';
 import dotenv from 'dotenv';
+import { uploadScreenshotToGCS } from './img_cloud_uploader';
 dotenv.config();
 // Sample JSON data (you can replace this with any JSON)
 const jsonData = [
@@ -58,18 +59,22 @@ export async function saveTableAsImage(html: string, outputPath: string) {
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
   const page = await browser.newPage();
-
+  let imageUrl;
   await page.setContent(html, { waitUntil: 'networkidle0' });
 
   const tableElement = await page.$('.table-content');
   if (tableElement) {
     await tableElement.screenshot({ path: outputPath });
+    imageUrl = await uploadScreenshotToGCS(outputPath, 'web_search_screenshot.jpeg');
+
+    console.log("Image URL:", imageUrl);
+
   } else {
     throw new Error('Table element not found on the page.');
   }
 
   await browser.close();
-  return outputPath;
+  return imageUrl;
 }
 
 // // Main function

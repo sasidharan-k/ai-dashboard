@@ -63,12 +63,12 @@ async function askOpenAI(question: string, contextData: ExcelRow[]): Promise<AIR
 
 // Main runner
 export async function excelReader(question: string) {
-  const filePath = path.join(__dirname, '../../' ,"NI.xlsx"); // Adjust the path to your Excel file
+  const filePath = path.join(__dirname, "NI.xlsx"); // Adjust the path to your Excel file
   console.log('Loading Excel data from:', filePath);
 
   const data = loadExcelData(filePath);
   const response = await askOpenAI(question, data);
-  let imagePath = '';
+  let imageUrl = '';
   console.log('JSON Response from OpenAI:');
   if (response.details) {
     const answer = response.answer;
@@ -85,10 +85,10 @@ export async function excelReader(question: string) {
     details = details.flat()
     console.log('Answer:', response.answer);
     console.log('Details:', details);
-    await saveTableAsImage(generateHTMLTable(details as any[], answer), 'generated/output.jpeg');
-
+    const imagePath = '/tmp/web_search_screenshot.jpeg';
+    imageUrl = await saveTableAsImage(generateHTMLTable(details as any[], answer), imagePath);
   }
-  return {imagePath, ai_response: response};
+  return {imageUrl, ai_response: response};
 }
 
 // excelReader('top banking stocks').catch(console.error);

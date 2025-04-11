@@ -24,6 +24,11 @@ const Navbar: React.FC = () => {
               Web Search
             </Link>
           </li>
+          <li className="nav-item">
+            <Link to="/google-analytics" className="nav-link">
+              Google Analytics
+            </Link>
+          </li>
         </ul>
       </div>
     </nav>

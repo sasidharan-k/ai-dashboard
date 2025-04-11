@@ -2,69 +2,51 @@ import { google } from 'googleapis';
 import { OpenAI } from 'openai';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
-
 dotenv.config();
 
 // Configure Google Analytics
-const VIEW_ID = '483175019'; // Replace with your Google Analytics View ID
-// const SERVICE_ACCOUNT_EMAIL = 'sasidharan@thydreamtech.com'; // Replace with your service account email
-// const SERVICE_ACCOUNT_KEY_FILE = 'path/to/your/service-account-key.json'; // Replace with the path to your service account key file
-const SERVICE_ACCOUNT_KEY_FILE = path.join(__dirname, '../' ,"peep-app-fb-430cdcc7a2a2.json")
-// Configure OpenAI
+const GA_PROPERTY_ID = process.env.GA_PROPERTY_ID || '';
+const SERVICE_ACCOUNT_KEY_FILE = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON || '';
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
 console.log('SERVICE_ACCOUNT_KEY_FILE:', SERVICE_ACCOUNT_KEY_FILE);
-async function getAnalyticsData(startDate: string, endDate: string) {
+export async function getAnalyticsData(startDate: string, endDate: string) {
   const auth = new google.auth.GoogleAuth({
     keyFile: SERVICE_ACCOUNT_KEY_FILE,
     scopes: ['https://www.googleapis.com/auth/analytics.readonly'],
   });
 
-  const client = await auth.getClient();
-  const analytics = google.analyticsreporting({ auth: client as any, version: 'v4' });
+  const analyticsData = google.analyticsdata({ auth, version: 'v1beta'  });
 
-  const response = await analytics.reports.batchGet({
+  const response = await analyticsData.properties.runReport({
+    property: `properties/${GA_PROPERTY_ID}`,
     requestBody: {
-      reportRequests: [
-        {
-          viewId: VIEW_ID,
-          dateRanges: [{ startDate, endDate }],
-          metrics: [
-            { expression: 'ga:users' },
-            { expression: 'ga:sessions' },
-            { expression: 'ga:pageviews' },
-            { expression: 'ga:bounceRate' },
-            { expression: 'ga:avgSessionDuration' },
-          ],
-          dimensions: [{ name: 'ga:date' }],
-        },
+      dateRanges: [{ startDate, endDate }],
+      metrics: [
+        { name: 'activeUsers' },
+        { name: 'sessions' },
       ],
+      dimensions: [{ name: 'date' }],
     },
   });
   console.log('Google Analytics Response:', response.data);
-  if (response.data && response.data.reports && response.data.reports[0] && response.data.reports[0].data && response.data.reports[0].data.rows) {
-    return response.data.reports[0].data.rows;
-  } else {
-    return []; // Return an empty array if data is missing.
-  }
+  return response.data.rows || [];
 }
 
-async function summarizeAnalyticsData(data: any[]) {
-  if (!data || data.length === 0) {
+export async function summarizeAnalyticsData(rows: any[]) {
+  if (!rows || rows.length === 0) {
     return 'No analytics data available.';
   }
 
-  let dataString = 'Google Analytics Data:\n';
-  data.forEach((row) => {
-    const date = row.dimensions[0];
-    const users = row.metrics[0].values[0];
-    const sessions = row.metrics[0].values[1];
-    const pageviews = row.metrics[0].values[2];
-    const bounceRate = row.metrics[0].values[3];
-    const avgSessionDuration = row.metrics[0].values[4];
+  let dataString = 'Google Analytics 4 Data:\n';
 
-    dataString += `Date: ${date}, Users: ${users}, Sessions: ${sessions}, Pageviews: ${pageviews}, Bounce Rate: ${bounceRate}, Avg. Session Duration: ${avgSessionDuration}\n`;
+  rows.forEach((row) => {
+    const date = row.dimensionValues[0].value;
+    const activeUsers = row.metricValues[0].value;
+    const sessions = row.metricValues[1].value;
+
+    dataString += `Date: ${date}, Active Users: ${activeUsers}, Sessions: ${sessions}\n`;
   });
 
   try {
@@ -72,10 +54,17 @@ async function summarizeAnalyticsData(data: any[]) {
       messages: [
         {
           role: 'user',
-          content: `Summarize the following Google Analytics data:\n\n${dataString}\n\nProvide a concise summary of the key trends and insights.`,
+          content: `
+            Summarize the following GA4 analytics data:\n\n${dataString}\n\nGive a concise summary of trends and insights.
+            Respond in this format:
+            {
+              "answer": "short answer here",
+              "details": { ...any structured relevant information }
+            }
+          `,
         },
       ],
-      model: 'gpt-3.5-turbo', // Or 'gpt-4' for better results
+      model: 'gpt-4o-mini', // or 'gpt-4'
     });
 
     return completion.choices[0].message.content;
@@ -85,12 +74,20 @@ async function summarizeAnalyticsData(data: any[]) {
   }
 }
 
+// For testing purposes
 async function main() {
   const startDate = '7daysAgo'; // Or 'YYYY-MM-DD'
   const endDate = 'today'; // Or 'YYYY-MM-DD'
 
   try {
     const analyticsData = await getAnalyticsData(startDate, endDate);
+    analyticsData.forEach((row: any) => {
+      const date = row.dimensionValues[0].value;
+      const users = row.metricValues[0].value;
+      const sessions = row.metricValues[1].value;
+      console.log(`Date: ${date}, Users: ${users}, Sessions: ${sessions}`);
+    });
+    console.log('Analytics Data:\n', analyticsData);
     const summary = await summarizeAnalyticsData(analyticsData);
     console.log('Summary:\n', summary);
   } catch (error) {
@@ -98,4 +95,5 @@ async function main() {
   }
 }
 
-main();
+// Comment out main() when using as a module
+// main();

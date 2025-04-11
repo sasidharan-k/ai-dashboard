@@ -11,6 +11,7 @@ interface ScreenshotResult {
   screenshotUrl: string;
   summary: string
   timestamp: Date;
+  imageUrl: string;
 }
 
 const Screenshot: React.FC = () => {
@@ -77,7 +78,7 @@ const Screenshot: React.FC = () => {
               <p>Timestamp: {new Date(result.timestamp).toLocaleString()}</p>
             </div>
             <div className="screenshot-preview">
-              <img src="http://localhost:3010/generated/screenshot.jpeg" alt="Generated" />
+              <img src={result.imageUrl} alt="Generated" />
             </div>
           </div>
         )}
