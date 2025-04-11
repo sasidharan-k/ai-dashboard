@@ -14,7 +14,7 @@ interface ScreenshotResult {
 }
 
 const Screenshot: React.FC = () => {
-  const [url, setUrl] = useState<string>('');
+  const [query, setQuery] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [result, setResult] = useState<ScreenshotResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +22,7 @@ const Screenshot: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!url) {
+    if (!query) {
       setError('Please enter a URL');
       return;
     }
@@ -32,7 +32,7 @@ const Screenshot: React.FC = () => {
     setResult(null);
 
     try {
-      const data = await getScreenshot(url);
+      const data = await getScreenshot(query);
 
       setResult(data);
     } catch (err) {
@@ -44,14 +44,14 @@ const Screenshot: React.FC = () => {
 
   return (
     <div className="dashboard">
-      <h1 className="dashboard-title">Flipkart Screenshot Tool</h1>
+      <h1 className="dashboard-title">Flipkart Search & Screenshot Tool</h1>
       <div className="tool-container">
         <form onSubmit={handleSubmit} className="url-form">
           <input
             type="text"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="Enter URL to screenshot"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Enter query to search"
             className="url-input"
           />
           <button

@@ -13,7 +13,7 @@ function App() {
         <Navbar />
         <main className="content">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<Screenshot />} />
             <Route path="/screenshot" element={<Screenshot />} />
             <Route path="/websearch" element={<WebSearch />} />
           </Routes>

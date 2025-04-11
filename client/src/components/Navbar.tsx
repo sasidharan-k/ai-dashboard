@@ -9,11 +9,11 @@ const Navbar: React.FC = () => {
           AI Dashboard
         </Link>
         <ul className="nav-menu">
-          <li className="nav-item">
+          {/* <li className="nav-item">
             <Link to="/" className="nav-link">
               Dashboard
             </Link>
-          </li>
+          </li> */}
           <li className="nav-item">
             <Link to="/screenshot" className="nav-link">
               Screenshot
