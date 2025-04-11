@@ -8,6 +8,7 @@ import path from 'path';
 import FormData  from 'form-data';
 import fs from 'fs';
 import {excelReader} from './helper/excelReader';
+import * as Tesseract from 'tesseract.js';
 
 import { createCanvas, loadImage } from 'canvas';
 dotenv.config();
@@ -27,9 +28,7 @@ const PORT = process.env.PORT || 3010;
 app.use(cors());
 app.use(express.json());
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+
 
 app.use('/generated', express.static(path.join(__dirname, '../generated')))
 // Routes
@@ -54,29 +53,47 @@ app.get('/api/dashboard-data', (req: Request, res: Response) => {
   });
 });
 
+// async function extractTextFromImage(imagePath: string) {
+//   const imageFile = fs.readFileSync(imagePath);
+//   console.log('Base64 Preview:', imageFile.toString('base64').slice(0, 100));
+//   const response = await axios.post(
+//     'https://api.ocr.space/parse/image',
+//     {
+//      // base64Image: imageFile.toString('base64'), // No data:image/... prefix!
+//       base64Image: `data:image/png;base64,${imageFile.toString('base64')}`,
+
+//       language: 'eng',
+//       isOverlayRequired: false,
+//       filetype: 'PNG'
+//     },
+//     {
+//       headers: {
+//         apikey: OCR_API_KEY,
+//         'Content-Type': 'application/json'
+//       }
+//     }
+//   );
+//   console.log('OCR Response:', response);
+//   const parsedText = response.data?.ParsedResults?.[0]?.ParsedText;
+//   return parsedText || '';
+// }
+
 async function extractTextFromImage(imagePath: string) {
   const imageFile = fs.readFileSync(imagePath);
   console.log('Base64 Preview:', imageFile.toString('base64').slice(0, 100));
-  const response = await axios.post(
-    'https://api.ocr.space/parse/image',
+
+  // Process image with Tesseract.js
+  const { data: { text } } = await Tesseract.recognize(
+    imageFile,  // You can also use the base64 data here, or the file path directly
+    'eng',      // Language (English in this case)
     {
-      base64Image: imageFile.toString('base64'), // No data:image/... prefix!
-      language: 'eng',
-      isOverlayRequired: false,
-      filetype: 'PNG'
-    },
-    {
-      headers: {
-        apikey: OCR_API_KEY,
-        'Content-Type': 'application/json'
-      }
+      logger: (m) => console.log(m), // Log progress
     }
   );
-  console.log('OCR Response:', response);
-  const parsedText = response.data?.ParsedResults?.[0]?.ParsedText;
-  return parsedText || '';
-}
 
+  console.log('Extracted Text:', text); // This will give the extracted text
+  return text || '';
+}
 async function summarizeText(text: string) {
   const response = await axios.post(
     'https://api.openai.com/v1/chat/completions',
@@ -84,7 +101,7 @@ async function summarizeText(text: string) {
       model: 'gpt-3.5-turbo',
       messages: [
         { role: 'system', content: 'You are a helpful assistant that summarizes text.' },
-        { role: 'user', content: `Summarize the following text:\n\n${text}` }
+        { role: 'user', content: `Give some Analysis using this text depending on each product:\n\n${text}` }
       ]
     },
     {
@@ -116,17 +133,7 @@ app.post('/api/screenshot', async (req: Request, res: Response) => {
     const page = await browser.newPage();
     await page.setViewport({ width: 1280, height: 800 });
 
-    await page.goto("https://www.flipkart.com", { waitUntil: "networkidle2" });
-
-    // try {
-
-    //   await page.waitForSelector("button._2KpZ6l._2doB4z", { timeout: 5000 });
-    //   await page.click("button._2KpZ6l._2doB4z");
-
-    // } catch (popupErr: any) {
-
-    //   console.log("Popup not found or already closed:", popupErr.message);
-    // }
+    await page.goto( url , { waitUntil: "networkidle2" });
 
     await page.type('input[name="q"]', query);
     await page.keyboard.press("Enter");
@@ -145,75 +152,21 @@ app.post('/api/screenshot', async (req: Request, res: Response) => {
     const extractedText = await extractTextFromImage(screenshotPath);
     console.log("Extracted text:", extractedText);
 
-    // const image = await page.screenshot({ encoding: 'base64' });
-    // await browser.close();
 
-    // // console.log('Screenshot taken:', image);
-    // // const base64data = reader.result.split(',')[1]; // Extract base64 data from the result
-    // const base64ImageUrl = `data:image/jpeg;base64,${image}`;
-
-    // // const base64Data = image.split(',')[1];
-    // const buffer = Buffer.from(base64ImageUrl, 'base64');
-
-
-    // const formData = new FormData();
-    // formData.append('file', buffer, { filename: 'screenshot.jpg', contentType: 'image/jpeg'})
-
-
-    // const buffer = Buffer.from(image, 'base64');
-    // const imageInstance = await loadImage(buffer);
-    // const canvas = createCanvas(imageInstance.width, imageInstance.height);
-    // const ctx = canvas.getContext('2d');
-    // ctx.drawImage(imageInstance, 0, 0);
-    // const pngBuffer = canvas.toBuffer('image/png');
-
-    // const response = await openai.chat.completions.create({
-    //   model: 'gpt-4',
-    //   messages: [
-    //     {
-    //       role: 'user',
-    //       content: [
-    //         { type: 'text', text: 'Summarize the content of this image.' },
-    //         {
-    //           type: 'image_url',
-    //           image_url: {
-    //             url: `data:image/png;base64,${pngBuffer.toString('base64')}`,
-    //           },
-    //         },
-    //       ],
-    //     },
-    //   ],
-    //   max_tokens: 300,
-    // });
-
-      // Send the analysis response
-      // const analysis = response.choices[0].message.content;
-      // res.json({ analysis });
-
-    // const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-    //   model: 'gpt-4o-mini',
-    //   messages: [
-    //     {
-    //       role: 'user',
-    //       content: [
-    //         { type: 'text', text: 'Summarize the content of this image.' },
-    //         {
-    //           type: 'image_url',
-    //           image_url: {
-    //             url: `data:image/jpeg;base64,${base64ImageUrl}`,
-    //           },
-    //         },
-    //       ],
-    //     },
-    //   ],
-    // }, {
-    //   headers: {
-    //     'Authorization': `Bearer ${OPENAI_API_KEY}`,
-    //     'Content-Type': 'application/json',
-    //   },
-    // });
     const summary = await summarizeText(extractedText);
-    res.json(summary);
+    const timestamp = new Date().toISOString();
+
+    const result = {
+      timestamp,
+      query,
+      searchedURL: `${url}?q=${encodeURIComponent(query)}`,
+      screenshot: "screenshot.png",
+      extractedText,
+      summary
+    };
+
+    res.json(result);
+
 
   } catch (error) {
     console.error('Screenshot error:', error);
