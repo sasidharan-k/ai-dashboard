@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { getScreenshot } from '../api/api';
 import './Dashboard.css'; // Reusing Dashboard styles for consistency
+import Markdown from 'markdown-to-jsx';
 
 interface ScreenshotResult {
   searchedURL: string;
@@ -8,6 +9,7 @@ interface ScreenshotResult {
   success: boolean;
   url: string;
   screenshotUrl: string;
+  summary: string
   timestamp: Date;
 }
 
@@ -42,8 +44,7 @@ const Screenshot: React.FC = () => {
 
   return (
     <div className="dashboard">
-      <h1 className="dashboard-title">Screenshot Tool</h1>
-
+      <h1 className="dashboard-title">Flipkart Screenshot Tool</h1>
       <div className="tool-container">
         <form onSubmit={handleSubmit} className="url-form">
           <input
@@ -68,18 +69,15 @@ const Screenshot: React.FC = () => {
 
         {result && (
           <div className="result-container">
-            <h2>Screenshot Result</h2>
             <div className="result-details">
-              <p>URL: {result.searchedURL}</p>
-              <div style={{ padding: '20px', lineHeight: 1.6 }}>Text:{result.extractedText}</div>
+
+              <div style={{ padding: '20px', lineHeight: 1.6 }}>
+                <Markdown>{result.summary}</Markdown>
+              </div>
               <p>Timestamp: {new Date(result.timestamp).toLocaleString()}</p>
             </div>
             <div className="screenshot-preview">
-              <img
-                src={result.screenshotUrl}
-                alt="Screenshot"
-                className="screenshot-image"
-              />
+              <img src="http://localhost:3010/generated/screenshot.jpeg" alt="Generated" />
             </div>
           </div>
         )}

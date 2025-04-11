@@ -80,7 +80,6 @@ app.get('/api/dashboard-data', (req: Request, res: Response) => {
 
 async function extractTextFromImage(imagePath: string) {
   const imageFile = fs.readFileSync(imagePath);
-  console.log('Base64 Preview:', imageFile.toString('base64').slice(0, 100));
 
   // Process image with Tesseract.js
   const { data: { text } } = await Tesseract.recognize(
@@ -100,7 +99,7 @@ async function summarizeText(text: string) {
     {
       model: 'gpt-3.5-turbo',
       messages: [
-        { role: 'system', content: 'You are a helpful assistant that summarizes text.' },
+        { role: 'system', content: 'You are a helpful assistant that summarizes text. And give output with formatting so we can understand easily.' },
         { role: 'user', content: `Give some Analysis using this text depending on each product:\n\n${text}` }
       ]
     },
@@ -117,8 +116,8 @@ async function summarizeText(text: string) {
 // Screenshot API endpoint
 app.post('/api/screenshot', async (req: Request, res: Response) => {
   try {
-    const { url } = req.body;
-    const query = 'samsung mobile search'
+    const { query } = req.body;
+    const url = 'https://www.flipkart.com'
     if (!url) {
       return res.status(400).json({ error: 'URL is required' });
     }
@@ -145,7 +144,7 @@ app.post('/api/screenshot', async (req: Request, res: Response) => {
     await page.evaluate(() => window.scrollBy(0, 2000));
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    const screenshotPath = path.join(__dirname, "screenshot.png");
+    const screenshotPath = path.join(__dirname, '../', "generated/screenshot.jpeg");
     await page.screenshot({ path: screenshotPath, fullPage: true });
     console.log("Taking screenshot...", screenshotPath);
 

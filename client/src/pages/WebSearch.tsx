@@ -80,7 +80,7 @@ const WebSearch: React.FC = () => {
               ))}
             </div> */}
             <div className="screenshot-preview">
-              <img src="http://localhost:3010/generated/output.jpeg" alt="Generated" />
+              <img src="/generated/output.jpeg" alt="Generated" />
             </div>
           </div>
         )}

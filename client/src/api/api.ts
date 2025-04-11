@@ -29,9 +29,9 @@ export const getServerStatus = async () => {
   }
 };
 
-export const getScreenshot = async (url: string) => {
+export const getScreenshot = async (query: string) => {
   try {
-    const response = await api.post('/screenshot', { url });
+    const response = await api.post('/screenshot', { query: query });
     return response.data;
   } catch (error) {
     console.error('Error fetching screenshot:', error);
