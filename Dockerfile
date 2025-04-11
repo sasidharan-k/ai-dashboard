@@ -40,6 +40,19 @@ COPY client/tsconfig.json ./
 COPY client/src ./src
 COPY client/public ./public
 
+# client setup
+WORKDIR /app/client
+COPY client/package.json client/package-lock.json ./
+RUN npm install
+COPY client/tsconfig.json ./
+COPY client/src ./src
+COPY client/public ./public
+RUN npm run build
+
+# move build to server
+WORKDIR /app/server
+RUN mkdir -p dist/public && cp -r /app/client/build/* dist/public/
+
 # Return to app root to run builds
 WORKDIR /app
 
